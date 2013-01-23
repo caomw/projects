@@ -1,7 +1,7 @@
 #!/bin/bash
 
-t=v8
-dir=run3_sub4_25deg
+t=v9
+dir=run5_sub4_25deg
 #dir=run2_sub16_25deg
 kml=$dir"_"$t.kml
 
