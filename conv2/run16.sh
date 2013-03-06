@@ -50,7 +50,7 @@ else
     cam1_sub=$cam1
     cam2_sub=$cam2
 fi
-export DO_DUMP=0
+export DO_DUMP=1
 export S_RATIO=0
 
 # echo "xxx" $(grep -i -E "numrows|numcolumns" $cam1_sub)
@@ -58,7 +58,7 @@ export S_RATIO=0
 # echo "xxx " $(gdalinfo $img1_sub | grep -i size)
 # echo "xxx " $(gdalinfo $img2_sub | grep -i size)
 
-mkdir -p $dir
+rm -rfv $dir; mkdir -p $dir
 
 img1_crop=$dir/${img1_sub/.tif/_crop.tif}
 img2_crop=$dir/${img2_sub/.tif/_crop.tif}
@@ -75,8 +75,8 @@ if [ 1 -eq 1 ]; then
     #((r=p+dx))
     #((s=q+dy))
     #echo "p=$p; q=$q; r=$r; s=$s;"
-    #p=-1579886; q=-675105; r=-1577846; s=-677145; # succeds at level 3
-    p=-1579886; q=-687905; r=-1577846; s=-689945; # fails at level 3!
+    p=-1579886; q=-687905; r=-1577846; s=-689945; # run1, fails at level 3
+    #p=-1579886; q=-675105; r=-1577846; s=-677145; # run2, succeds at level 3
     #p=-1589488.202; q=-668705.5; r=-1567418.202; s=-693005.5; # whole box
     time_run.sh gdal_translate -projwin $p $q $r $s $img1_sub $img1_crop
     time_run.sh gdal_translate -projwin $p $q $r $s $img2_sub $img2_crop
@@ -90,8 +90,8 @@ if [ 1 -eq 1 ]; then
 #     ((d=2*12*1024/sub)); ((d=d/1024)); ((d=d*1024));
 #     gdal_translate -srcwin $a $b 1024 1024 $img1_sub $img1_crop 
 #     gdal_translate -srcwin $c $d 1024 1024 $img2_sub $img2_crop 
-    viewq2.sh $img1_crop
-    viewq2.sh $img2_crop
+    #viewq2.sh $img1_crop
+    #viewq2.sh $img2_crop
     opts="$opt $img1_crop $img2_crop $cam1_sub $cam2_sub $dir/res $dem" 
 else
     opts="$opt $img1_sub $img2_sub $cam1_sub $cam2_sub $dir/res $dem"
@@ -102,5 +102,5 @@ time_run.sh stereo_corr $opts
 time_run.sh stereo_rfne $opts
 time_run.sh stereo_fltr $opts
 time_run.sh stereo_tri  $opts
-time_run.sh point2dem -r earth --threads 1 $dir/res-PC.tif
+time_run.sh point2dem -r earth --threads 16 $dir/res-PC.tif
 show_dems.pl $dir/res-DEM.tif 

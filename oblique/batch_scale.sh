@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$#" -lt 3 ]; then 
+if [ "$#" -lt 3 ]; then
     echo Usage: $0 dirIn dirOut 4
     exit
 fi
@@ -13,8 +13,8 @@ scaleFactor=$3
 if [ "$PBS_NODEFILE"  != "" ]; then sshFileOption="--sshloginfile $PBS_NODEFILE"
 else                                sshFileOption=""; fi
 
-#rm -rfv $dirOut
-#mkdir -p $dirOut 
+rm -rfv $dirOut
+mkdir -p $dirOut
 
 # Make the paths absolute
 currDir=$(pwd)
@@ -26,5 +26,4 @@ cd $dirIn
 
 . isis_setup.sh
 
-ls *.cub | xargs -n 1 -P 1 -I {} reduce from={} to=$dirOut/{} sscale=$scaleFactor lscale=$scaleFactor
-
+ls *.cub | xargs -n 1 -P 16 -I {} reduce from={} to=$dirOut/{} sscale=$scaleFactor lscale=$scaleFactor

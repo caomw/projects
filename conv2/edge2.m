@@ -1,4 +1,4 @@
-function [eout,thresh,gv_45,gh_135] = edge(varargin)
+function [eout,thresh,gv_45,gh_135] = edge2(varargin)
 %EDGE Find edges in intensity image.
 %   EDGE takes an intensity or a binary image I as its input, and returns a
 %   binary image BW of the same size as I, with 1's where the function
@@ -417,6 +417,9 @@ else  % one of the easy methods (roberts,sobel,prewitt)
         msg = sprintf('%s %s',method, 'is not a valid method.' );
         error(eid,'%s',msg);
     end
+
+    x_mask
+    y_mask
     
     % compute the gradient in x and y direction
     bx = imfilter(a,x_mask,'replicate');
@@ -429,6 +432,8 @@ else  % one of the easy methods (roberts,sobel,prewitt)
     
     % compute the magnitude
     b = kx*bx.*bx + ky*by.*by;
+
+    disp(sprintf('kx and ky are %g %g', kx, ky));
     
     % determine the threshold; see page 514 of "Digital Imaging Processing" by
     % William K. Pratt
@@ -440,7 +445,8 @@ else  % one of the easy methods (roberts,sobel,prewitt)
     else                % Use relative tolerance specified by the user
         cutoff = (thresh).^2;
     end
-    
+
+    disp(sprintf('thinning is %g', thinning));
     if thinning
         e = computeEdgesWithThinning(b,bx,by,kx,ky,offset,cutoff);
     else

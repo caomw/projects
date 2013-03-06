@@ -16,7 +16,7 @@ export PATH=$HOME/projects/StereoPipeline/src/asp/Tools:$PATH
 ((wid=28672/sub))
 #((wid=25600/sub))
 hgt=0
-dir=res_l$level"_"$wid"_"$hgt"_sub"$sub"_factor"$factor"_v11"
+dir=res_l$level_sub"$sub" # #"_"$wid"_"$hgt" _factor"$factor"_v11"
 
 # exec &> output_"$dir".txt 2>&1
 
@@ -56,15 +56,16 @@ fi
 a=-281;b=-348;c=336;d=158;
 #((a=a/sub)); ((b=b/sub)); ((c=c/sub)); ((d=d/sub));
 ((a=factor*a/sub)); ((b=factor*b/sub)); ((c=factor*c/sub)); ((d=factor*d/sub));
-seed="--corr-seed-mode 0"
-win="--left-image-crop-win $wid $hgt 1000 1000"
+seed="--corr-seed-mode 1"
+#win="--left-image-crop-win $wid $hgt 1000 1000"
 #win="--left-image-crop-win $wid $hgt 1000 1000 --corr-search -400 -400 400 400"
-opts="--corr-max-levels $level $seed $win --threads=16 -s stereo.default -t dg $left $right $in1_sub.xml $in2_sub.xml $dir/res --subpixel-mode 0 --disable-fill-holes --corr-search $a $b $c $d"
+opts=" --corr-max-levels $level $seed $win --threads=16 -s stereo.default -t dg $left $right $in1_sub.xml $in2_sub.xml $dir/res --subpixel-mode 0 --disable-fill-holes --corr-search $a $b $c $d --alignment-method homography"
 export DO_DUMP=1
-rm -rfv $dir; mkdir -p $dir; time_run.sh stereo_pprc $opts
+rm -rfv $dir; mkdir -p $dir;
+time_run.sh stereo_pprc $opts
 time_run.sh stereo_corr $opts
 time_run.sh stereo_rfne $opts
 time_run.sh stereo_fltr $opts
 time_run.sh stereo_tri  $opts
 time_run.sh point2dem $dir/res-PC.tif
-show_dems.pl $dir/res-DEM.tif 
+show_dems.pl $dir/res-DEM.tif
