@@ -10,10 +10,10 @@ MAIN:{
 #   }
 
   # The box containing continental US and Alaska
-  my $beg_lon = 172;
-  my $end_lon = 300;
-  my $beg_lat = 24;
-  my $end_lat = 72;
+  my $beg_lon = 0;
+  my $end_lon = 360;
+  my $beg_lat = -90;
+  my $end_lat = 90;
   
   my $spacing = 5; # spacing in minutes
   my $numMinutes = 60; # number of minutes in on edgree
@@ -45,9 +45,12 @@ MAIN:{
   close(FILE);
 
   print "Number of points is $n\n";
-
   my $lon_len  = ($end_lon - $beg_lon)*$numMinutes/$spacing + 1;
   my $lat_len  = ($end_lat - $beg_lat)*$numMinutes/$spacing + 1;
+
+  print "Lon points: $lon_len\n";
+  print "Lat points: $lat_len\n";
+  
   my $expected = $lon_len*$lat_len;
   if ($n != $expected){
     print "ERROR: Expected $expected points, but got $n points.\n";

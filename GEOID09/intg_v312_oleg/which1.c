@@ -77,11 +77,10 @@ int which1(double xlat, double xlon, int nfiles, int kk, int imodel,
                 }
                 return( kk );
             } else {
-              fprintf(stderr, "Error: In Alaska overlap region.\n");
-              fprintf(stderr, "       SouthEast Alaska grid not open.\n");
-              fprintf(stderr, "       Get SouthEast Alaska grid.\n");
-              //return -1;
-              abort();
+                fprintf(stderr, "Error: In Alaska overlap region.\n");
+                fprintf(stderr, "       SouthEast Alaska grid not open.\n");
+                fprintf(stderr, "       Get SouthEast Alaska grid.\n");
+                abort();
             }
         }
     }

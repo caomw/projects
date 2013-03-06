@@ -37,7 +37,7 @@ CCFLAGS  =  -DNGS_PC_ENV
 .C.o   :
 	$(CCC) $(CCFLAGS) $(INCLUDES) -c $<
 #-------------------------------------
-PGM      = intg
+PGM      = intg_oleg
 
 INCLUDES = \
   -I.
