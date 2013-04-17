@@ -1,0 +1,1 @@
+rm -rfv nonmap10; export LOCAL=0; is; stereo M0100115.cub E0201461.cub nonmap10/nonmap -s stereo.default --threads 1 --corr-seed-mode 2 --disparity-estimation-dem ref-DEM.tif --disparity-estimation-dem-error 5 --alignment-method homography --stereo-file stereo.default

@@ -21,7 +21,7 @@ def scalexml(xml_infilename, xml_outfilename, s):
 
 	tree = ET.parse(xml_infilename)
 
-	#Integer tags that will decrease 
+	#Integer tags that will decrease
 	taglist = ['NUMROWS', 'NUMCOLUMNS']
 	for tag in taglist:
 		elem = tree.find('.//%s' % tag)
@@ -29,10 +29,11 @@ def scalexml(xml_infilename, xml_outfilename, s):
 		#print elem.text
 
 	#Floating point tags that will decrease
-	taglist = ['ROWUNCERTAINTY', 'COLUNCERTAINTY']
+	taglist = ['ROWUNCERTAINTY', 'COLUNCERTAINTY', 'LINEOFFSET', 'SAMPOFFSET', 'LINESCALE', 'SAMPSCALE']
 	for tag in taglist:
 		elem = tree.find('.//%s' % tag)
-		elem.text = str("%0.15e" % (float(elem.text) * s))
+                if elem is not None :
+                        elem.text = str("%0.15e" % (float(elem.text) * s))
 		#print elem.text
 
 	#Floating point tags that will increase
@@ -49,13 +50,13 @@ def scalexml(xml_infilename, xml_outfilename, s):
 	elem = tree.find('.//%s' % tag)
 	AVGLINERATE_new = float(elem.text) * s
 	elem.text = str("%0.15e" % AVGLINERATE_new)
-	
+
 	tag = 'EXPOSUREDURATION'
 	elem = tree.find('.//%s' % tag)
 	elem.text = str("%0.15e" % (1/AVGLINERATE_new))
-	
+
 	#Correct the first line time, which corresponds to CENTER of first line
-	#TLCTIME and FIRSTLINETIME 
+	#TLCTIME and FIRSTLINETIME
 	#<TLCTIME>2011-02-08T18:18:10.703575Z</TLCTIME>
 	tag = 'TLCTIME'
 	elem = tree.find('.//%s' % tag)
@@ -76,7 +77,7 @@ def scalexml(xml_infilename, xml_outfilename, s):
 		l[0] = "%0.15e" % (float(l[0]) * s)
 		#Note - TLCLIST time value is relative to TLCTIME, which we've already corrected, so no need here
 		#l[1] = "%0.15e" % (float(l[1]) + AVGLINERATE_new/2)
-		e.text = ' '.join(l) 
+		e.text = ' '.join(l)
 
 	#Optical distortion is not supported
 	#Set optical distortion polyorder from -1 to 0
@@ -100,14 +101,14 @@ def imgscale(img_in, img_out, s):
     print "Resampling %s by factor of %i" % (img_in, s)
 
     import gdal
-    import subprocess 
-    
+    import subprocess
+
     mode = "AVERAGE"
 
     src_ds = gdal.Open(img_in, gdal.GA_ReadOnly)
     src_ds.BuildOverviews(mode, [s])
     subprocess.call(['mv '+img_in+'.ovr '+img_out])
-   
+
     #OpenCV approach
     #import cv
     #im = cv.LoadImageM(img_in)
@@ -136,14 +137,14 @@ def main():
 
     #Need to add input checks
     perc = float(sys.argv[2])
-    
+
     src_filename = sys.argv[1]
     dst_filename = sys.argv[3]
     sub=100.0/perc
-    
+
     #dst_filename = str(os.path.splitext(src_filename)[0])  + str(int(sub)) + '.tif';
     #print('Writing ' + dst_filename)
-    
+
 
     #Originally, use scale factor from 0-1
     s = perc/100.0
@@ -168,4 +169,3 @@ def main():
 
 if __name__ == '__main__':
 	main()
-

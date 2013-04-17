@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-if [ "$#" -lt 1 ]; then echo Usage: $0 sub subpix; exit; fi
+if [ "$#" -lt 4 ]; then echo Usage: $0 sub subpix levels tag; exit; fi
 
 sub=$1
 subpix=$2
@@ -17,7 +17,7 @@ cam2=WV01_11JAN131653180-P1BS-1020010011862E00.xml
 dem=krigged_dem_nsidc_ndv0_fill.tif
 #win_opt="--left-image-crop-win $startx $starty $win $win"
 win_opt=""
-((a=-200/sub)); ((b=-200/sub)); ((c=200/sub)); ((d=200/sub));
+((a=-100/sub)); ((b=-100/sub)); ((c=100/sub)); ((d=100/sub));
 src="--corr-search $a $b $c $d"
 opt="$win_opt $src --corr-max-levels $levels -t dg -s stereo.default --threads 16 --alignment-method none --subpixel-mode $subpix --disable-fill-holes"
 if [ $sub -ne 1 ]; then
@@ -64,5 +64,5 @@ time_run.sh stereo_corr $opts
 time_run.sh stereo_rfne $opts
 time_run.sh stereo_fltr $opts
 time_run.sh stereo_tri  $opts
-time_run.sh point2dem -r earth --threads 16 $dir/res-PC.tif
+time_run.sh point2dem -r earth --threads 1 $dir/res-PC.tif --nodata-value -32767
 show_dems.pl $dir/res-DEM.tif
