@@ -19,7 +19,7 @@ dem=krigged_dem_nsidc_ndv0_fill.tif
 win_opt=""
 ((a=-100/sub)); ((b=-100/sub)); ((c=100/sub)); ((d=100/sub));
 src="--corr-search $a $b $c $d"
-opt="$win_opt $src --corr-max-levels $levels -t dg -s stereo.default --threads 16 --alignment-method none --subpixel-mode $subpix --disable-fill-holes"
+opt="$win_opt --corr-seed-mode 1 $src --corr-max-levels $levels -t dg -s stereo.default --threads 16 --alignment-method none --subpixel-mode $subpix --disable-fill-holes"
 if [ $sub -ne 1 ]; then
 
     #cam1_sub=${cam1/.xml/_sub$sub.xml}
