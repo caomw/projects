@@ -1,10 +1,8 @@
 #!/usr/bin/perl
 use strict;        # insist that all variables be declared
 use diagnostics;   # expand the cryptic warnings
-
+use Math::Trig;
 MAIN:{
-
-  # To do: Test with lower-res images! Some numbers must change!
 
   if (scalar(@ARGV) < 1){
     print "Usage: $0 file.tif\n";
@@ -13,6 +11,8 @@ MAIN:{
   my $file = $ARGV[0];
 
   my ($name, $lfile, $lines, $samples, $offset, $out, $txt, $pix_size, $map_res);
+  my $pi = pi;
+  my $R = 1737.4;
 
   $lfile = $file;
   $lfile =~ s/^.*\/(.*?)$/$1/g;
@@ -45,7 +45,7 @@ MAIN:{
 
   if ($txt =~ /Pixel Size\s*=\s*\(\s*(.*?),/){
     $pix_size = $1;
-    $map_res = sprintf("%.4f", 1.0/$pix_size);
+    $map_res = 1.0/$pix_size;
   }else{
     print "Could not parse the pixel size from: $out\n";
     exit(1);
@@ -66,7 +66,11 @@ MAIN:{
   }
   print "Max lon and lat are $max_lon $max_lat\n";
 
-  my $map_scale = sprintf("%.8f", $pix_size*30.3233504241494820);
+  my $map_scale = $pix_size*2.0*$pi*$R/360;
+  # Remove spurrious error
+  my $big = 1.0e+14;
+  $map_scale = int($map_scale * $big + 0.5)/$big;
+
   print "map scale is $map_scale\n";
 
   my $descr = "Albedo";
@@ -84,14 +88,19 @@ MAIN:{
   print "Writing: $lbl_file\n";
 
   # Note: We assume that center lon and lat are zero.
-  my $line_offset = 1 + $max_lat*$map_res;
-  my $samp_offset = 1 - $min_lon*$map_res;
+
+  # The formulas below give the same values.
+  my $line_offset =  $max_lat * $map_res;
+  my $samp_offset = -$min_lon * $map_res;
+  #print "--- old values: $line_offset $samp_offset\n";
+  $line_offset =  $max_lat * $R * $pi / $map_scale / 180.0;
+  $samp_offset = -$min_lon * $R * $pi / $map_scale / 180.0;
+  print "Line and sample offset: $line_offset $samp_offset\n";
 
   my $is_comment = 0;
 
   foreach my $line (@lines){
     if ($line =~ /\/\*/) { $is_comment = 1; }
-    if ($line =~ /\*\//) { $is_comment = 0; }
 
     if (!$is_comment){
       $line =~ s/\".*?\.tif/\"$lfile/g;
@@ -117,6 +126,7 @@ MAIN:{
     # This must be the last step
     $line = enforce_line_length($line);
 
+    if ($line =~ /\*\//) { $is_comment = 0; }
     print FILE "$line";
   }
 
