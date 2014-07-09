@@ -65,7 +65,7 @@ def expandCmdLine(cmdLine, cursor):
       cursor  = len(cmdLine)
 
    lWord = words[numWords-1]
-   if    ( numWords >= 1 and lWord[-2:] == "ld"):
+   if    ( numWords >= 2 and lWord[-2:] == "ld" and (len(lWord) == 2 or not re.match('\w', lWord[-3]))):
       words[numWords-1] = lWord[:-2] + "LD_LIBRARY_PATH"
       cmdLine = " ".join(words) + after
       cursor  = len(cmdLine)
@@ -90,8 +90,9 @@ def expandCmdLine(cmdLine, cursor):
       cmdLine = " ".join(words) + after
       cursor  = len(cmdLine)
 
-   elif  ( numWords >= 1 and words[numWords-1][:1] == "o"):
-      # Replace o45 with > output45.txt 2>&1&
+   elif  ( numWords >= 1 and words[numWords-1][:1] == "o") and \
+            len(words[numWords-1]) <= 2:
+      # Replace o4 with > output4.txt 2>&1&
       suff = words[numWords-1][1:]
       words[numWords-1] = "> output" + suff + ".txt 2>&1&"
       cmdLine = " ".join(words) + after

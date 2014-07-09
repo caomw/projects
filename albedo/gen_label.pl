@@ -95,7 +95,7 @@ MAIN:{
   #print "--- old values: $line_offset $samp_offset\n";
   $line_offset =  $max_lat * $R * $pi / $map_scale / 180.0;
   $samp_offset = -$min_lon * $R * $pi / $map_scale / 180.0;
-  print "Line and sample offset: $line_offset $samp_offset\n";
+  #print "Line and sample offset: $line_offset $samp_offset\n";
 
   my $is_comment = 0;
 
@@ -103,34 +103,53 @@ MAIN:{
     if ($line =~ /\/\*/) { $is_comment = 1; }
 
     if (!$is_comment){
-      $line =~ s/\".*?\.tif/\"$lfile/g;
-      $line =~ s/(PRODUCT_ID.*?\").*?$/$1$name\"/g;
-      $line =~ s/(LINES\s*=\s*)\d+/$1$lines/g;
-      $line =~ s/(RECORD_BYTES\s*=\s*)\d+/$1$samples/g;
-      $line =~ s/(LINE_LAST_PIXEL\s*=\s*)\d+/$1$lines/g;
-      $line =~ s/(FILE_RECORDS\s*=\s*)\d+/$1$samples/g;
-      $line =~ s/(LINE_SAMPLES\s*=\s*)\d+/$1$samples/g;
-      $line =~ s/(SAMPLE_LAST_PIXEL\s*=\s*)\d+/$1$samples/g;
-      $line =~ s/\d+(\s+\<BYTES>)/$offset$1/g;
-      $line =~ s/(MAP_RESOLUTION\s*=\s*).*?(\s*\<PIX)/$1$map_res$2/g;
-      $line =~ s/(MAP_SCALE\s*=\s*).*?(\s*\<KM)/$1$map_scale$2/g;
-      $line =~ s/(MINIMUM_LATITUDE\s*=\s*).*?(\s*\<DEG)/$1$min_lat$2/g;
-      $line =~ s/(MAXIMUM_LATITUDE\s*=\s*).*?(\s*\<DEG)/$1$max_lat$2/g;
-      $line =~ s/(WESTERNMOST_LONGITUDE\s*=\s*).*?(\s*\<DEG)/$1$min_lon$2/g;
-      $line =~ s/(EASTERNMOST_LONGITUDE\s*=\s*).*?(\s*\<DEG)/$1$max_lon$2/g;
-      $line =~ s/(LINE_PROJECTION_OFFSET\s*=\s*).*?$/$1$line_offset/g;
-      $line =~ s/(SAMPLE_PROJECTION_OFFSET\s*=\s*).*?$/$1$samp_offset/g;
-      $line =~ s/(DESCRIPTION.*?\").*?(\")/$1$descr$2/g;
+      $line =~ s/\".*?\.tif/\"$lfile/ig;
+      $line =~ s/(PRODUCT_ID.*?\").*?$/$1$name\"/ig;
+      $line =~ s/(LINES\s*=\s*)\d+/$1$lines/ig;
+      $line =~ s/(RECORD_BYTES\s*=\s*)\d+/$1$samples/ig;
+      $line =~ s/(LINE_LAST_PIXEL\s*=\s*)\d+/$1$lines/ig;
+      $line =~ s/(FILE_RECORDS\s*=\s*)\d+/$1$samples/ig;
+      $line =~ s/(LINE_SAMPLES\s*=\s*)\d+/$1$samples/ig;
+      $line =~ s/(SAMPLE_LAST_PIXEL\s*=\s*)\d+/$1$samples/ig;
+      $line =~ s/\d+(\s+\<BYTES>)/$offset$1/ig;
+      $line =~ s/(MAP_RESOLUTION\s*=\s*).*?(\s*\<PIX)/$1$map_res$2/ig;
+      $line =~ s/(MAP_SCALE\s*=\s*).*?(\s*\<KM)/$1$map_scale$2/ig;
+      $line =~ s/(MINIMUM_LATITUDE\s*=\s*).*?(\s*\<DEG)/$1$min_lat$2/ig;
+      $line =~ s/(MAXIMUM_LATITUDE\s*=\s*).*?(\s*\<DEG)/$1$max_lat$2/ig;
+      $line =~ s/(WESTERNMOST_LONGITUDE\s*=\s*).*?(\s*\<DEG)/$1$min_lon$2/ig;
+      $line =~ s/(EASTERNMOST_LONGITUDE\s*=\s*).*?(\s*\<DEG)/$1$max_lon$2/ig;
+      $line =~ s/(LINE_PROJECTION_OFFSET\s*=\s*).*?$/$1$line_offset/ig;
+      $line =~ s/(SAMPLE_PROJECTION_OFFSET\s*=\s*).*?$/$1$samp_offset/ig;
+      $line =~ s/(DESCRIPTION.*?\").*?(\")/$1$descr$2/ig;
+      $line =~ s/(\<[\w\/\\]+\>)/do_subst($1)/eg; # lowercase
+      $line =~ s/^.*?CORE_.*?\n//g;
     }
 
     # This must be the last step
-    $line = enforce_line_length($line);
+    if ($line ne ""){
+      $line = enforce_line_length($line);
+    }
 
     if ($line =~ /\*\//) { $is_comment = 0; }
+
+    # We use \r\n as end-of-line as described in the documentation
+    $line =~ s/\r//g;
+    $line =~ s/\n/\r\n/g;
+
     print FILE "$line";
   }
 
   close(FILE);
+}
+
+sub do_subst{
+  my $word = shift;
+  if ($word =~ /^\<bytes\>$/i){
+    $word = "<BYTES>";
+  }else{
+    $word = lc($word);
+  }
+  return $word;
 }
 
 sub enforce_line_length{
@@ -140,7 +159,6 @@ sub enforce_line_length{
 
   $line =~ s/[\r\n]//g;
   $line .= ' ' x $len;
-  # We use \r\n as end-of-line as described in the documentation
-  return ( substr $line, 0, $len ) . "\r\n";
+  return ( substr $line, 0, $len ) . "\n";
 
 }

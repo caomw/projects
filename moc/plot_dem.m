@@ -1,7 +1,6 @@
 %M=imread('results_1mpp_big/res-DEM.tif');
 
 light_green=[184, 224, 98]/256; % light green
-
 mycolor = light_green;
 H=mesh(double(M));
 set(H, 'FaceColor', mycolor, 'EdgeColor','none', 'FaceAlpha', 1);
