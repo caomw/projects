@@ -1,23 +1,36 @@
 #!/bin/bash
 
-t=v9
-dir=run5_sub4_25deg
-#dir=run2_sub16_25deg
-kml=$dir"_"$t.kml
+#t=v9
+if [ "$#" -lt 2 ]; then echo Usage: $0 name.kml dir; exit; fi
 
-base=https://byss.arc.nasa.gov/oleg
-root=/byss/docroot/oleg
+kml=$1
+dir=$2
+
+kml=$kml.kml
+
+base=https://byss.arc.nasa.gov/$(whoami)
+root=/byss/docroot/$(whoami)
 address=$base/$kml
 list=list.html
 tmpList=tmpFile.html
+# grep -v 0777 | grep -v 0760
+links=$(ls $dir*/run-DEM_25pct.tif | perl -pi -e "s#/#_#g" | perl -pi -e "s#\.tif##g" | perl -pi -e "s#^(.*?)\s*\$#$base\/\$1.kml #g")
+~/bin/create_combined_kml.pl $kml $links
 
-links=$(ls $dir"_"*/img-DEM.tif | grep -v 0777 | grep -v 0760 | perl -pi -e "s#.tif##g" | perl -pi -e "s#/#_#g" | perl -pi -e "s#^(.*?)\s*\$#$base/\$1\/\$1.kml #g")
-~/bin/create_combined_kml.pl $root/$kml $links
-
-cd $root
 echo "Number of links: " $(grep -i networklink $kml | wc)
 
-tac $list > $tmpList
-echo "<p> <a href=\"$address\">$address</a><br>" >> $tmpList
-tac $tmpList > $list
+link=$base/$kml
+address="<p> <a href=\"$link\">$link</a><br>";
+rsync -avz $kml $(whoami)@byss:$root > /dev/null 2>&1
+list=list.html
+rsync -avz  $(whoami)@byss:$root/$list . > /dev/null 2>&1
+tac $list > tmpFile.txt; echo $address >> tmpFile.txt; tac tmpFile.txt > $list
+rsync -avz $list $(whoami)@byss:$root > /dev/null 2>&1
+
+echo $link
+
+# cd $root
+# tac $list > $tmpList
+# echo "<p> <a href=\"$address\">$address</a><br>" >> $tmpList
+# tac $tmpList > $list
 

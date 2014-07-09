@@ -1,0 +1,1 @@
+for f in $(ls sub4_cubes_*/*cub); do echo $f; j=$(echo $f | perl -pi -e "s#^.*?(AS.*?)\..*?\$#\$1#g"); qsub -N $j -l select=1:ncpus=8 -l walltime=16:00:00 -W group_list=s1219 -j oe -m e -- ~/projects/oblique/run_pair.sh $(pwd) $f; sleep 30; done
