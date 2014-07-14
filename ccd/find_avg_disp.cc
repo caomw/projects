@@ -80,6 +80,11 @@ struct Options : asp::BaseOptions {};
 int main( int argc, char *argv[] ){
   
   // Find the average disparity in each column. 
+  if (argc < 4){
+    std::cerr << "Usage: " << argv[0] << " input-disp.tif run/dx.txt run/dy.txt"
+              << std::endl;
+    exit(1);
+  }
   
   std::string in_file  = argv[1], outx = argv[2], outy = argv[3];
 

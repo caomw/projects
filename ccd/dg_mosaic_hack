@@ -389,6 +389,11 @@ def tlc_pixel_lookup( tlctime, tlclist, time ):
 # must exist and end in either '.xml' or '.XML'.
 def xml_name( filename ):
     path, ext = os.path.splitext(filename)
+    
+    m = re.match('^(.*?)-BROWSE', path)
+    if m:
+        path = m.group(1)
+
     xml_file_l = path + ".xml"
     xml_file_u = path + ".XML"
 

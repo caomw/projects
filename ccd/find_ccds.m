@@ -1,11 +1,19 @@
-function main(nums)
+function main(dirs)
 
    ax={};
    ay={};
-   for k=0:1
-      for i=1:length(nums)
-         dir=sprintf('a%d/runva%d_flip%d', nums(i), nums(i), k);
-         disp(sprintf('dir is %s', dir));
+   for i=1:length(dirs)
+      num = dirs{i};
+      for k=0:1 % must put here 1!!!
+         if isnumeric(num)
+            dir=sprintf('b%d/runvb%d_flip%d', num, num, k);
+         else
+            dir=num;
+            if k == 1
+               continue
+            end
+         end
+         
          ax0=split(ls([dir '*/dx.txt']));
          ay0=split(ls([dir '*/dy.txt']));
          ax = [ax, ax0];
@@ -26,6 +34,10 @@ function do_plot(d, dir, fig)
       dxf=d{i};
       disp(sprintf('Loading %s', dxf));
       dx = load(dxf);
+      [m, n] = size(X);
+      if m > 0 && length(dx) < m
+         dx = [dx' zeros(1, m - length(dx))]';
+      end
       X = [X dx];
    end
    X = X';
@@ -34,6 +46,9 @@ function do_plot(d, dir, fig)
    disp(sprintf('size is %d %d', m, n));
    
    for r=1:m
+
+      % Stay away from boundary.
+      bdval = 300; % Must tweak this!!!
       c0 = round(n/3);
       c1 = n - c0;
       cs = 1;
@@ -50,8 +65,8 @@ function do_plot(d, dir, fig)
          end
       end
       
-      cs = cs + 300;
-      ce = ce - 300;
+      cs = cs + bdval;
+      ce = ce - bdval;
       for c=1:cs
          X(r, c) = NaN;
       end
@@ -67,15 +82,14 @@ function do_plot(d, dir, fig)
    figure(fig); clf; hold on;
    colors=['b', 'r', 'g', 'c', 'k', 'b', 'r', 'g', 'c', 'b', 'r', 'g', 'k', 'c'];
    q=0;
-   s=0.5; % cutoff
-   t=0.6; % shift when plotting
+   s=1.0; % cutoff
+   t=0.6; %0.6; % shift when plotting
 
    period = 708;
    shift  = -119;
    P1 = period*(2*(1:n))   + shift; I = find(P1 <= n); P1 = P1(I);
    P2 = period*(2*(1:n)+1) + shift; I = find(P2 <= n); P2 = P2(I);
 
-   Z = X(1, :)*0;
    for r=1:m
       q=q+1;
       q = rem(q-1, length(colors)) + 1;
@@ -83,10 +97,10 @@ function do_plot(d, dir, fig)
          disp(sprintf('doing %s', d{r}));
       end
 
-      Y = X(r, :)-find_moving_avg(X(r, :)); % Y = max(Y, -s); Y = min(Y, s);
-      Z = Z + Y;
+      Y = X(r, :)-find_moving_avg(X(r, :));
       X(r, :) = Y;
-      plot(Y + t*r, 'b');         
+      r2 = rem(r-1, length(colors))+1;
+      plot(Y + t*(r+2), colors(r2));         
    end
 
    [m, n] = size(X);
@@ -105,8 +119,6 @@ function do_plot(d, dir, fig)
       end
    end
    
-   plot(Z + t*(m+1), 'r');
-
    dx0 = Z;
    sx0=find_ccds_aux(dx0);
    I0=1:(length(dx0));
@@ -118,7 +130,7 @@ function do_plot(d, dir, fig)
    P = P(I);
 
    % Keep one CCD per period
-   wid = period/7;
+   wid = 200;
    I=[];
    for i=1:length(P)
       J = find( P0 >= P(i) - wid & P0 <= P(i) + wid);
@@ -131,13 +143,15 @@ function do_plot(d, dir, fig)
    
    P0 = P0(I);
    H0 = H0(I);
-%  plot(I0, dx0', 'b');
-%  plot(P0, dx0(P0), 'b*');
+   plot(Z, 'r');
+   plot(P0, dx0(P0), 'b*');
+   plot(P0, H0, 'b');
 
-   plot(P0, H0, 'r');
+   
+   %plot(I0, dx0', 'b');
 
    format long g
-   T = [P0' H0'];
+   T = [P0' H0']';
    if fig == 1
       file='ccdx.txt';
    else

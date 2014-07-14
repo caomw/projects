@@ -15,6 +15,7 @@ MAIN:{
   my @files = (<*ntf>);
   foreach my $file (@files){
     my $pref = $file;
+    $pref =~ s/-BROWSE//g;
     $pref =~ s/^.*-(.*?)\..*?$/$1/g;
     if ($curr ne $pref){
       my $ans = qx($execDir/dg_mosaic_hack *$pref*ntf  --output-prefix right --skip-rpc-gen);

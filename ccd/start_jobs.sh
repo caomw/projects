@@ -1,11 +1,9 @@
 #!/bin/bash
 
 #if [ "$#" -lt 1 ]; then echo Usage: $0 argName; exit; fi
-maxNum=20
+maxNum=80 # How many sumultaneous jobs to run
 
-for g in 100 113 115 120 122 124 126 127 129 130 133 134 135 136 137 138 139 140 143 144 147 148 150 155 156 158 159 163 165 169 174 175 176 178 180 182 184 185 186 189; do 
-    g=a$g
-#for g in $(ls -d a* | grep -v .o); do
+for g in $(ls -d c*[0-9] | grep -v .o); do
     
     q=$(ls $g.o* 2>/dev/null);
     if [ "$q" != "" ]; then

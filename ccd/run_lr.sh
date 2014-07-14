@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$#" -lt 3 ]; then echo Usage: $0 dir tag opts; exit; fi
+if [ "$#" -lt 3 ]; then echo Usage: $0 dir name opts; exit; fi
 
 # To do: Force that all runs be redone below!
 
@@ -19,15 +19,13 @@ execDir=$(dirname $0)
 dir=$1
 if [ "$dir" != "" ]; then cd $dir; fi
 
-tag=$2
+name=$2
 opts=$3
-T=$4
+tag=""
 # p=$5
 # s=$6
-tag2="$T"
-#export T=$T
 
-runDir="fixed"$tag2"$tag" # "_"$p"_"$s
+runDir="fixed"$tag"$name" # "_"$p"_"$s
 outFile=output_"$runDir".txt
 echo runDir=$runDir
 echo Will write to $(pwd)/$outFile
@@ -35,6 +33,16 @@ exec &> $outFile 2>&1
 
 l=$($execDir/print_files.pl | awk '{print $1}')
 r=$($execDir/print_files.pl | awk '{print $2}')
+
+turnon0=1
+#a=$(grep -i scandir $l.xml | grep -i reverse)
+#if [ "$a" != "" ]; then turnon0=1; echo will do left-right; fi
+turnon1=1
+#a=$(grep -i scandir $r.xml | grep -i reverse)
+#if [ "$a" != "" ]; then turnon1=1; echo will do right-left; fi
+
+# Turn on the correction of artifacts
+turnon=0
 
 if [[ ! $opts =~ left-image-crop-win ]]; then
     echo "Must specify crop-win as input"
@@ -48,68 +56,82 @@ win2="0 0 50600 21504"
 win3="0 0 50600 21504"
 #rm -fv *crop* *proj_crop*
 if [ ! -f $l"_crop.tif" ]; then
-    ~/bin/gdal_translate.pl -srcwin $win2 $l.ntf $l"_crop.tif"
+    gdal_translate.pl -srcwin $win2 $l.ntf $l"_crop.tif"
 fi
 
 if [ ! -f $r"_crop.tif" ]; then
-    ~/bin/gdal_translate.pl -srcwin $win3 $r.ntf $r"_crop.tif"
+    gdal_translate.pl -srcwin $win3 $r.ntf $r"_crop.tif"
 fi
 
 # for fp in $l $r; do 
-#     ~/bin/time_run.sh mapproject -t rpc --tr 20 ~/projects/StereoPipelineTest/data/krigged_dem_nsidc_ndv0_fill.tif $fp"_crop".tif $fp.xml $fp"_proj_crop".tif
-#     ~/bin/time_run.sh ~/bin/float2int2.pl $fp"_proj_crop".tif
-#     ~/bin/time_run.sh ~/bin/image2qtree.pl $tag$fp $fp"_proj_crop_int".tif
+#     time_run.sh mapproject -t rpc --tr 20 ~/projects/StereoPipelineTest/data/krigged_dem_nsidc_ndv0_fill.tif $fp"_crop".tif $fp.xml $fp"_proj_crop".tif
+#     time_run.sh float2int2.pl $fp"_proj_crop".tif
+#     time_run.sh image2qtree.pl $name$fp $fp"_proj_crop_int".tif
 # done
 
-turnon=0
-hill=$runDir/run-crop-hill.tif
 if [ "$turnon" -eq 1 ]; then
+    hill=$runDir/run-crop-hill.tif
     rm -rfv $runDir
     mkdir -p $runDir
 
     wv_correct "$l"_crop.tif "$l".xml $runDir/"$l"_crop_shift.tif
     wv_correct "$r"_crop.tif "$r".xml $runDir/"$r"_crop_shift.tif
     
-    ~/bin/time_run.sh stereo $runDir/"$l"_crop_shift.tif $runDir/"$r"_crop_shift.tif "$l".xml "$r".xml $runDir/run $opts
+    time_run.sh stereo $runDir/"$l"_crop_shift.tif $runDir/"$r"_crop_shift.tif "$l".xml "$r".xml $runDir/run $opts
     gdal_translate.pl -srcwin $win $runDir/run-F.tif $runDir/run-crop-F.tif
-    $execdir/find_avg_disp $runDir/run-crop-F.tif $runDir/dx.txt $runDir/dy.txt
+    $execDir/find_avg_disp $runDir/run-crop-F.tif $runDir/dx.txt $runDir/dy.txt
     gdal_translate.pl -srcwin $win $runDir/run-PC.tif $runDir/run-crop-PC.tif 
-    point2dem -r Earth  $runDir/run-crop-PC.tif 
+    point2dem -r Earth  $runDir/run-crop-PC.tif  --errorimage 
     gdaldem hillshade   $runDir/run-crop-DEM.tif $hill
-    gdal_translate -outsize 50% 50% $hill $runDir/run-crop-hill_sub2.tif
-    ~/bin/image2qtree.pl $runDir/run-crop-hill_sub2.tif
-    rm -fv $runDir/*[A-Z]*.tif
+    gdal_translate.pl -outsize 50% 50% $hill $runDir/run-crop-hill_sub2.tif
+    image2qtree.pl $runDir/run-crop-hill_sub2.tif
+    gdal_translate.pl -outsize 20% 20% $runDir/run-crop-IntersectionErr.tif $runDir/run-crop-IntersectionErr_20pct.tif
+    #rm -fv $(ls $runDir0/*{PC,RD}*.tif)
 fi
 
-turnon=1
-runDir0=runv"$tag2""$tag"_flip0
-hill=$runDir0/run-crop-hill.tif
-if [ "$turnon" -eq 1 ]; then
+runDir0=runv"$tag""$name"_flip0
+if [ "$turnon0" -eq 1 ]; then
+    hill=$runDir0/run-crop-hill.tif
+    dx=$runDir0/dx.txt
+    dy=$runDir0/dy.txt
+
     rm -rfv $runDir0
-    ~/bin/time_run.sh stereo "$l"_crop.tif "$r"_crop.tif "$l".xml "$r".xml $runDir0/run $opts
-    gdal_translate.pl -srcwin $win $runDir0/run-F.tif $runDir0/run-crop-F.tif
-    $execdir/find_avg_disp $runDir0/run-crop-F.tif $runDir0/dx.txt $runDir0/dy.txt
-    gdal_translate.pl -srcwin $win $runDir0/run-PC.tif $runDir0/run-crop-PC.tif 
-    point2dem -r Earth  $runDir0/run-crop-PC.tif --errorimage 
-    gdaldem hillshade   $runDir0/run-crop-DEM.tif $hill
-    gdal_translate -outsize 50% 50% $hill $runDir0/run-crop-hill_sub2.tif
-    ~/bin/image2qtree.pl $runDir0/run-crop-hill_sub2.tif
-    rm -fv $(ls $runDir0/*{PC,RD}*.tif)
+    if [ -f "$dx" ] && [ -f "$dy" ]; then
+        echo Will skip $runDir0 as files exist
+    else
+        time_run.sh stereo "$l"_crop.tif "$r"_crop.tif "$l".xml "$r".xml $runDir0/run $opts
+        gdal_translate.pl -srcwin $win $runDir0/run-F.tif $runDir0/run-crop-F.tif
+        $execDir/find_avg_disp $runDir0/run-crop-F.tif $dx $dy
+        gdal_translate.pl -srcwin $win $runDir0/run-PC.tif $runDir0/run-crop-PC.tif 
+        point2dem -r Earth  $runDir0/run-crop-PC.tif --errorimage 
+        gdaldem hillshade   $runDir0/run-crop-DEM.tif $hill
+        gdal_translate.pl -outsize 50% 50% $hill $runDir0/run-crop-hill_sub2.tif
+        image2qtree.pl $runDir0/run-crop-hill_sub2.tif
+        gdal_translate.pl -outsize 20% 20% $runDir0/run-crop-IntersectionErr.tif $runDir0/run-crop-IntersectionErr_20pct.tif
+       #rm -fv $(ls $runDir0/*{PC,RD}*.tif)
+    fi
 fi
 
-turnon=1
-runDir1=runv"$tag2""$tag"_flip1
-hill=$runDir1/run-crop-hill.tif
-if [ "$turnon" -eq 1 ]; then
+runDir1=runv"$tag""$name"_flip1
+if [ "$turnon1" -eq 1 ]; then
+    hill=$runDir1/run-crop-hill.tif
+    dx=$runDir1/dx.txt
+    dy=$runDir1/dy.txt
+
     rm -rfv $runDir1
-    ~/bin/time_run.sh stereo "$r"_crop.tif "$l"_crop.tif "$r".xml "$l".xml $runDir1/run $opts
-    gdal_translate.pl -srcwin $win $runDir1/run-F.tif $runDir1/run-crop-F.tif
-    $execdir/find_avg_disp $runDir1/run-crop-F.tif $runDir1/dx.txt $runDir1/dy.txt
-    gdal_translate.pl -srcwin $win $runDir1/run-PC.tif $runDir1/run-crop-PC.tif 
-    point2dem -r Earth  $runDir1/run-crop-PC.tif --errorimage
-    gdaldem hillshade   $runDir1/run-crop-DEM.tif $hill
-    gdal_translate -outsize 50% 50% $hill $runDir1/run-crop-hill_sub2.tif
-    ~/bin/image2qtree.pl $runDir1/run-crop-hill_sub2.tif
-    rm -fv $(ls $runDir1/*{PC,RD}*.tif)
+    if [ -f "$dx" ] && [ -f "$dy" ]; then
+        echo Will skip $runDir1 as files exist
+    else
+        time_run.sh stereo "$r"_crop.tif "$l"_crop.tif "$r".xml "$l".xml $runDir1/run $opts
+        gdal_translate.pl -srcwin $win $runDir1/run-F.tif $runDir1/run-crop-F.tif
+        $execDir/find_avg_disp $runDir1/run-crop-F.tif $dx $dy
+        gdal_translate.pl -srcwin $win $runDir1/run-PC.tif $runDir1/run-crop-PC.tif 
+        point2dem -r Earth  $runDir1/run-crop-PC.tif --errorimage
+        gdaldem hillshade   $runDir1/run-crop-DEM.tif $hill
+        gdal_translate.pl -outsize 50% 50% $hill $runDir1/run-crop-hill_sub2.tif
+        image2qtree.pl $runDir1/run-crop-hill_sub2.tif
+        gdal_translate.pl -outsize 20% 20% $runDir1/run-crop-IntersectionErr.tif $runDir1/run-crop-IntersectionErr_20pct.tif
+        #rm -fv $(ls $runDir1/*{PC,RD}*.tif)
+    fi
 fi
 
