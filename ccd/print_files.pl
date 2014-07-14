@@ -18,7 +18,7 @@ MAIN:{
     $pref =~ s/-BROWSE//g;
     $pref =~ s/^.*-(.*?)\..*?$/$1/g;
     if ($curr ne $pref){
-      my $ans = qx($execDir/dg_mosaic_hack *$pref*ntf  --output-prefix right --skip-rpc-gen);
+      my $ans = qx($execDir/dg_mosaic_hack.py *$pref*ntf  --output-prefix right --skip-rpc-gen);
     $ans =~ s/\s*//g;
       push(@list, $ans);
       $curr=$pref;
