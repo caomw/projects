@@ -10,7 +10,7 @@ MAIN:{
   # together with tdi and scan direction.
   
   if (scalar(@ARGV) < 1){
-    print "Usage: $0 dir\n";
+    print "Usage: $0 dirs\n";
     exit(0);
   }
 
@@ -37,7 +37,7 @@ MAIN:{
       if ($text =~ /\<TDILEVEL\>(\d+)\<\/TDILEVEL\>/s){
         $tdi = $1;
       }
-    my $scandir = "";
+      my $scandir = "";
       if ($text =~ /\<SCANDIRECTION\>(\w+)\<\/SCANDIRECTION\>/s){
         $scandir = $1;
       }

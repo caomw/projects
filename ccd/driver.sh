@@ -16,7 +16,7 @@ if [ "$dir" != "" ]; then cd $dir; fi
 
 #crop="--left-image-crop-win 0 7168 3000 3000" # temporary!
 crop="--left-image-crop-win 0 7168 50000 7168"
-opts="--subpixel-mode 1 --corr-timeout 200 --disable-fill-holes --alignment-method homography --corr-max-levels 2"
+opts="--subpixel-mode 1 --corr-timeout 150 --disable-fill-holes --alignment-method homography --corr-max-levels 2"
 
 basedir=$(dirname $(pwd))
 $basedir/run_lr.sh $(pwd) $(basename $(pwd)) "$crop $opts"

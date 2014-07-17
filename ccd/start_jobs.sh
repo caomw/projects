@@ -1,9 +1,11 @@
 #!/bin/bash
 
-#if [ "$#" -lt 1 ]; then echo Usage: $0 argName; exit; fi
-maxNum=80 # How many sumultaneous jobs to run
+if [ "$#" -lt 1 ]; then echo Usage: $0 prefix; exit; fi
 
-for g in $(ls -d c*[0-9] | grep -v .o); do
+prefix=$1
+maxNum=2000 # How many sumultaneous jobs to run
+
+for g in $(ls -d $prefix*[0-9] | grep -v .o); do
     
     q=$(ls $g.o* 2>/dev/null);
     if [ "$q" != "" ]; then
@@ -27,8 +29,8 @@ for g in $(ls -d c*[0-9] | grep -v .o); do
             continue
         fi
         echo Will start $g
-        qsub -N $g -l select=1:ncpus=8 -l walltime=5:00:00 -W group_list=s1219 -j oe -m n -- $(pwd)/driver.sh $(pwd)/$g
-        sleep 30
+        qsub -N $g -l select=1:ncpus=8 -l walltime=4:00:00 -W group_list=s1219 -j oe -m n -- $(pwd)/driver.sh $(pwd)/$g
+        sleep 10
         break
         
     done

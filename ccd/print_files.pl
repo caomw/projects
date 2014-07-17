@@ -10,15 +10,20 @@ use File::Basename;
 MAIN:{
 
   my $execDir = dirname(__FILE__);
+  my $ext = "ntf";
+  if (scalar(@ARGV) > 0){
+    $ext = $ARGV[0];
+  }
+  
   my @list;
   my $curr= "";
-  my @files = (<*ntf>);
+  my @files = (<*$ext>);
   foreach my $file (@files){
     my $pref = $file;
     $pref =~ s/-BROWSE//g;
     $pref =~ s/^.*-(.*?)\..*?$/$1/g;
     if ($curr ne $pref){
-      my $ans = qx($execDir/dg_mosaic_hack.py *$pref*ntf  --output-prefix right --skip-rpc-gen);
+      my $ans = qx($execDir/dg_mosaic_hack.py *$pref*$ext  --output-prefix right --skip-rpc-gen);
     $ans =~ s/\s*//g;
       push(@list, $ans);
       $curr=$pref;
@@ -27,7 +32,7 @@ MAIN:{
   my $count = 0;
   foreach my $f (@list){
     my $fp = $f;
-    $fp =~ s/\.ntf//g;
+    $fp =~ s/\.$ext//g;
     print "$fp ";
     $count++;
     last if ($count >=2);

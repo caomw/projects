@@ -42,7 +42,7 @@ for f in $left.xml $right.xml $left.ntf $right.ntf; do
         continue
     fi
     echo Copy $f to $destdir
-    shiftc $f $destdir
+    shiftc --no-mail $f $destdir
     sleep 2
 done
 
