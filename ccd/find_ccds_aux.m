@@ -1,4 +1,57 @@
-function U = find_ccds3(B)
+function U = find_ccds_aux(dx0, fig)
+
+   n = length(dx0);
+   
+   period = 708;
+   shift  = -119;
+   sx0=find_ccds_aux2(dx0);
+
+   I0=1:(length(dx0));
+   P0 = sx0(1, :);
+   H0 = sx0(2, :);
+   
+   P = period*(1:n) + shift;
+   I = find(P <= n);
+   P = P(I);
+   
+   % Keep one CCD per period
+   wid = 300;
+   I=[];
+   for i=1:length(P)
+      J = find( P0 >= P(i) - wid & P0 <= P(i) + wid);
+      if length(J) == 0
+         continue
+      end
+      K = find( abs(H0(J)) == max(abs(H0(J))) );
+      I = [I, J(K(1))];
+   end
+
+   figure(fig); clf; hold on;
+   
+   P0 = P0(I);
+   H0 = H0(I);
+   plot(dx0, 'r');
+   plot(P0, dx0(P0), 'b*');
+   plot(P0, H0, 'b');
+
+   plot(I0, dx0', 'b');
+   
+   format long g;
+   T = [P0' H0']';
+   if fig == 1
+      file='ccdx.txt';
+      file2='avgx.txt';
+   else
+      file='ccdy.txt';
+      file2='avgy.txt';
+   end
+   
+   disp(sprintf('saving %s', file));
+   disp(sprintf('saving %s', file2));
+   save(file, '-ascii', '-double', 'T');
+   save(file2, '-ascii', '-double', 'dx0');
+   
+function U = find_ccds_aux2(B)
    
 
    do_plot = 0; figno=0;

@@ -1,5 +1,8 @@
-function main(dirs)
+function main(do_find, dirs)
 
+   % if do_find is 1, we actually find and save the CCDs,
+   % otherwise we just examine the current averaged disparties.
+   
    ax={};
    ay={};
    for i=1:length(dirs)
@@ -14,8 +17,8 @@ function main(dirs)
             end
          end
          
-         ax0=split(ls([dir '*/dx.txt']));
-         ay0=split(ls([dir '*/dy.txt']));
+         ax0=[dir '/dx.txt'];
+         ay0=[dir '/dy.txt'];
          ax = [ax, ax0];
          ay = [ay, ay0];
       end
@@ -32,7 +35,12 @@ function do_plot(d, dir, fig)
    X = [];
    for i=1:length(d)
       dxf=d{i};
-      disp(sprintf('Loading %s', dxf));
+      if exist(dxf, 'file') == 2
+         disp(sprintf('Loading %s', dxf));
+      else
+         disp(sprintf('Missing file: %s', dxf));
+         continue;
+      end
       dx = load(dxf);
       [m, n] = size(X);
       if m > 0 && length(dx) < m
@@ -118,49 +126,11 @@ function do_plot(d, dir, fig)
          Z(1, c) = sum/num;
       end
    end
-   
-   dx0 = Z;
-   sx0=find_ccds_aux(dx0);
-   I0=1:(length(dx0));
-   P0 = sx0(1, :);
-   H0 = sx0(2, :);
 
-   P = period*(1:n) + shift;
-   I = find(P <= n);
-   P = P(I);
-
-   % Keep one CCD per period
-   wid = 200;
-   I=[];
-   for i=1:length(P)
-      J = find( P0 >= P(i) - wid & P0 <= P(i) + wid);
-      if length(J) == 0
-         continue
-      end
-      K = find( abs(H0(J)) == max(abs(H0(J))) );
-      I = [I, J(K(1))];
+   if do_find
+      find_ccds_aux(Z, fig)
    end
    
-   P0 = P0(I);
-   H0 = H0(I);
-   plot(Z, 'r');
-   plot(P0, dx0(P0), 'b*');
-   plot(P0, H0, 'b');
-
-   
-   %plot(I0, dx0', 'b');
-
-   format long g
-   T = [P0' H0']';
-   if fig == 1
-      file='ccdx.txt';
-   else
-      file='ccdy.txt';
-   end
-   
-   disp(sprintf('saving %s', file));
-   save(file, '-ascii', '-double', 'T');
-
 function b = split(a)
 
    % split by space character

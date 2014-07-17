@@ -7,6 +7,10 @@
 %
 %   The average disparities will go to dx.txt and dy.txt in some subdirectories.
 %
+%   Need to ensure that in homography_rectification() in
+%   src/asp/Core/InterestPointMatching.cc, the cropping output_bbox is turned off
+%   to not shift the CCD artifacts from their location.
+%
 %2. Plot the average disparities for a set of runs using find_ccds.m. ...
 %   Manually throw away the noisy ones. At the end, the CCD jumps in x and in y
 %   will be saved to text files.
