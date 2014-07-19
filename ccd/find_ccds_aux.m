@@ -26,7 +26,7 @@ function U = find_ccds_aux(dx0, fig)
       I = [I, J(K(1))];
    end
 
-   figure(fig); clf; hold on;
+   figure(fig); hold on;
    
    P0 = P0(I);
    H0 = H0(I);

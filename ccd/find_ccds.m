@@ -6,31 +6,20 @@ function main(do_find, dirs)
    ax={};
    ay={};
    for i=1:length(dirs)
-      num = dirs{i};
-      for k=0:1 % must put here 1!!!
-         if isnumeric(num)
-            dir=sprintf('b%d/runvb%d_flip%d', num, num, k);
-         else
-            dir=num;
-            if k == 1
-               continue
-            end
-         end
-         
-         ax0=[dir '/dx.txt'];
-         ay0=[dir '/dy.txt'];
-         ax = [ax, ax0];
-         ay = [ay, ay0];
-      end
+      dir = dirs{i};
+      ax0=[dir '/dx.txt'];
+      ay0=[dir '/dy.txt'];
+      ax = [ax, ax0];
+      ay = [ay, ay0];
    end
    
-   do_plot(ax, dir, 1);
+   do_plot(do_find, ax, 1);
    title('x');
    
-   do_plot(ay, dir, 2); 
+   do_plot(do_find, ay, 2); 
    title('y');
    
-function do_plot(d, dir, fig)
+function do_plot(do_find, d, fig)
    
    X = [];
    for i=1:length(d)
@@ -91,7 +80,7 @@ function do_plot(d, dir, fig)
    colors=['b', 'r', 'g', 'c', 'k', 'b', 'r', 'g', 'c', 'b', 'r', 'g', 'k', 'c'];
    q=0;
    s=1.0; % cutoff
-   t=0.6; %0.6; % shift when plotting
+   t=0.0; %0.6; % shift when plotting
 
    period = 708;
    shift  = -119;
@@ -127,7 +116,7 @@ function do_plot(d, dir, fig)
       end
    end
 
-   if do_find
+   if do_find ~= 0
       find_ccds_aux(Z, fig)
    end
    
