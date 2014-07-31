@@ -2,6 +2,7 @@
 use strict;        # insist that all variables be declared
 use diagnostics;   # expand the cryptic warnings
 use File::Basename;
+use File::Spec;
 
 # Given all the files in the current directory,
 # print a left and corresponding right ntf file
@@ -9,7 +10,8 @@ use File::Basename;
 # the .ntf extensions.
 MAIN:{
 
-  my $execDir = dirname(__FILE__);
+  my $execDir = File::Spec->rel2abs(dirname(__FILE__));
+  
   my $ext = "ntf";
   if (scalar(@ARGV) > 0){
     $ext = $ARGV[0];
@@ -18,13 +20,20 @@ MAIN:{
   my @list;
   my $curr= "";
   my @files = (<*$ext>);
+  if (scalar(@files) == 0){
+    $ext = "tif";
+    @files = (<*$ext>);
+  }
+  
   foreach my $file (@files){
     my $pref = $file;
     $pref =~ s/-BROWSE//g;
+    $pref =~ s/_crop//g;
     $pref =~ s/^.*-(.*?)\..*?$/$1/g;
     if ($curr ne $pref){
       my $ans = qx($execDir/dg_mosaic_hack.py *$pref*$ext  --output-prefix right --skip-rpc-gen);
-    $ans =~ s/\s*//g;
+      $ans =~ s/\s*//g;
+      $ans =~ s/_crop//g;
       push(@list, $ans);
       $curr=$pref;
     }

@@ -31,8 +31,9 @@ echo runDir=$runDir
 echo Will write to $(pwd)/$outFile
 exec &> $outFile 2>&1
 
-l=$($execDir/print_files.pl | awk '{print $1}')
-r=$($execDir/print_files.pl | awk '{print $2}')
+ans=$($execDir/print_files.pl)
+l=$(echo $ans | awk '{print $1}')
+r=$(echo $ans | awk '{print $2}')
 
 turnon0=1
 #a=$(grep -i scandir $l.xml | grep -i reverse)
@@ -51,29 +52,31 @@ fi
 win=$(echo $opts | perl -pi -e 's#^.*?left-image-crop-win\s+(\d+\s+\d+\s+\d+\s+\d+).*?$#$1#g')
 
 #win2="0 0 7168 7168"  # temporary!!!
-#win3="0 0 7168 7168"  # temporary!!!
 win2="0 0 50600 21504"
-win3="0 0 50600 21504"
 #rm -fv *crop* *proj_crop*
 if [ ! -f $l"_crop.tif" ]; then
     gdal_translate.pl -srcwin $win2 $l.ntf $l"_crop.tif"
 fi
 
 if [ ! -f $r"_crop.tif" ]; then
-    gdal_translate.pl -srcwin $win3 $r.ntf $r"_crop.tif"
+    gdal_translate.pl -srcwin $win2 $r.ntf $r"_crop.tif"
 fi
 
-# for fp in $l $r; do 
-#     time_run.sh mapproject -t rpc --tr 20 ~/projects/StereoPipelineTest/data/krigged_dem_nsidc_ndv0_fill.tif $fp"_crop".tif $fp.xml $fp"_proj_crop".tif
-#     time_run.sh float2int2.pl $fp"_proj_crop".tif
-#     time_run.sh image2qtree.pl $name$fp $fp"_proj_crop_int".tif
-# done
+#rm -f *ntf
 
 if [ "$turnon" -eq 1 ]; then
+
+    runDir=run_fixed"$tag""$name"_flip1
     hill=$runDir/run-crop-hill.tif
     rm -rfv $runDir
     mkdir -p $runDir
+    wv_correct "$l"_crop.tif "$l".xml $runDir/"$l"_crop_shift.tif
+    wv_correct "$r"_crop.tif "$r".xml $runDir/"$r"_crop_shift.tif
 
+    runDir=run_fixed"$tag""$name"_flip0
+    hill=$runDir/run-crop-hill.tif
+    rm -rfv $runDir
+    mkdir -p $runDir
     wv_correct "$l"_crop.tif "$l".xml $runDir/"$l"_crop_shift.tif
     wv_correct "$r"_crop.tif "$r".xml $runDir/"$r"_crop_shift.tif
     
@@ -86,7 +89,23 @@ if [ "$turnon" -eq 1 ]; then
     gdal_translate.pl -outsize 50% 50% $hill $runDir/run-crop-hill_sub2.tif
     image2qtree.pl $runDir/run-crop-hill_sub2.tif
     gdal_translate.pl -outsize 20% 20% $runDir/run-crop-IntersectionErr.tif $runDir/run-crop-IntersectionErr_20pct.tif
-    #rm -fv $(ls $runDir0/*{PC,RD}*.tif)
+    colormap.pl $runDir/run-crop-IntersectionErr_20pct.tif
+    rm -fv $(ls $runDir/*.tif | grep -v crop-F.tif | grep -v Intersect | grep -v hill)
+
+    runDir=run_fixed"$tag""$name"_flip1
+    hill=$runDir/run-crop-hill.tif
+
+    time_run.sh stereo $runDir/"$r"_crop_shift.tif $runDir/"$l"_crop_shift.tif "$r".xml "$l".xml $runDir/run $opts
+    gdal_translate.pl -srcwin $win $runDir/run-F.tif $runDir/run-crop-F.tif
+    $execDir/find_avg_disp $runDir/run-crop-F.tif $runDir/dx.txt $runDir/dy.txt
+    gdal_translate.pl -srcwin $win $runDir/run-PC.tif $runDir/run-crop-PC.tif 
+    point2dem -r Earth  $runDir/run-crop-PC.tif  --errorimage 
+    gdaldem hillshade   $runDir/run-crop-DEM.tif $hill
+    gdal_translate.pl -outsize 50% 50% $hill $runDir/run-crop-hill_sub2.tif
+    image2qtree.pl $runDir/run-crop-hill_sub2.tif
+    gdal_translate.pl -outsize 20% 20% $runDir/run-crop-IntersectionErr.tif $runDir/run-crop-IntersectionErr_20pct.tif
+    colormap.pl $runDir/run-crop-IntersectionErr_20pct.tif
+    rm -fv $(ls $runDir/*.tif | grep -v crop-F.tif | grep -v Intersect | grep -v hill)
 fi
 
 runDir0=runv"$tag""$name"_flip0
@@ -108,7 +127,8 @@ if [ "$turnon0" -eq 1 ]; then
         gdal_translate.pl -outsize 50% 50% $hill $runDir0/run-crop-hill_sub2.tif
         image2qtree.pl $runDir0/run-crop-hill_sub2.tif
         gdal_translate.pl -outsize 20% 20% $runDir0/run-crop-IntersectionErr.tif $runDir0/run-crop-IntersectionErr_20pct.tif
-       #rm -fv $(ls $runDir0/*{PC,RD}*.tif)
+        colormap.pl $runDir0/run-crop-IntersectionErr_20pct.tif
+        rm -fv $(ls $runDir0/*.tif | grep -v crop-F.tif | grep -v Intersect | grep -v hill)
     fi
 fi
 
@@ -131,7 +151,8 @@ if [ "$turnon1" -eq 1 ]; then
         gdal_translate.pl -outsize 50% 50% $hill $runDir1/run-crop-hill_sub2.tif
         image2qtree.pl $runDir1/run-crop-hill_sub2.tif
         gdal_translate.pl -outsize 20% 20% $runDir1/run-crop-IntersectionErr.tif $runDir1/run-crop-IntersectionErr_20pct.tif
-        #rm -fv $(ls $runDir1/*{PC,RD}*.tif)
+        colormap.pl $runDir1/run-crop-IntersectionErr_20pct.tif
+        rm -fv $(ls $runDir1/*.tif | grep -v crop-F.tif | grep -v Intersect | grep -v hill)
     fi
 fi
 

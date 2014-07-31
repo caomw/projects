@@ -3,8 +3,7 @@
 if [ "$#" -lt 1 ]; then echo Usage: $0 prefix; exit; fi
 
 prefix=$1
-maxNum=2000 # How many sumultaneous jobs to run
-
+maxNum=90 # How many sumultaneous jobs to run
 for g in $(ls -d $prefix*[0-9] | grep -v .o); do
     
     q=$(ls $g.o* 2>/dev/null);

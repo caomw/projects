@@ -21,11 +21,13 @@ MAIN:{
   my $prefix = $ARGV[0];
   my @lines;
   foreach my $dir (<$prefix*>){
-    next unless ($dir =~ /^$prefix\d+$/);
 
     chdir $currDir;
-    chdir $dir;
 
+    next unless ($dir =~ /^$prefix.*\d$/);
+    next unless (-d $dir);
+
+    chdir $dir;
     my $ans = qx($execDir/print_files.pl);
     $ans =~ s/\s*$//g;
     my @files = split(/\s+/, $ans);
@@ -43,9 +45,14 @@ MAIN:{
         $scandir = 0;
       }
 
-      $line = "$line $scandir";
+      my $pitch = 0.0;
+      if ($text =~ /\<DETPITCH\>(.*?)\<\/DETPITCH\>/is){
+        $pitch = $1;
+      }
+
+      $line = "$line $scandir $pitch";
     }
-    $line =~ s/[a-z]//ig; # matlab does not like letters
+    $line =~ s/^.*?_//g;# matlab does not like letters
     push(@lines, $line);
     print "$line\n";
   }

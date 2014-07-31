@@ -30,7 +30,7 @@ dir="$dir/"
 
 destdir=/nobackupnfs2/$(whoami)/projects/data/stereo_antarctic/$dir
 mkdir -p $destdir
-for f in $left.xml $right.xml $left.ntf $right.ntf; do
+for f in $left*jpg $right*jpg $left.xml $right.xml $left.ntf $right.ntf; do
 
     if [ ! -f "$f" ]; then
         echo Could not find $f, skipping

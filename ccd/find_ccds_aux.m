@@ -1,40 +1,31 @@
-function U = find_ccds_aux(dx0, fig)
+function find_ccds_aux(dx0, fig)
 
    n = length(dx0);
    
-   period = 708;
-   shift  = -119;
    sx0=find_ccds_aux2(dx0);
 
    I0=1:(length(dx0));
    P0 = sx0(1, :);
    H0 = sx0(2, :);
    
-   P = period*(1:n) + shift;
-   I = find(P <= n);
-   P = P(I);
-   
-   % Keep one CCD per period
-   wid = 300;
-   I=[];
-   for i=1:length(P)
-      J = find( P0 >= P(i) - wid & P0 <= P(i) + wid);
-      if length(J) == 0
-         continue
-      end
-      K = find( abs(H0(J)) == max(abs(H0(J))) );
-      I = [I, J(K(1))];
-   end
+   wid = 60;
+   period = 705;
+   shift  = -80;
+   [P0, H0] = sparse_ccds(wid, period, shift, n, P0, H0);
 
    figure(fig); hold on;
-   
-   P0 = P0(I);
-   H0 = H0(I);
    plot(dx0, 'r');
    plot(P0, dx0(P0), 'b*');
    plot(P0, H0, 'b');
 
-   plot(I0, dx0', 'b');
+   %[period, shift] = find_true_period(P0, H0);
+   
+%   if fig == 1
+%      figure(fig+10);
+%      clf; hold on;
+%      plot(diff(P0), 'b');
+%      plot(1000*H0, 'r');
+%   end
    
    format long g;
    T = [P0' H0']';
@@ -45,11 +36,49 @@ function U = find_ccds_aux(dx0, fig)
       file='ccdy.txt';
       file2='avgy.txt';
    end
-   
+
+   dx0 = dx0';
    disp(sprintf('saving %s', file));
    disp(sprintf('saving %s', file2));
    save(file, '-ascii', '-double', 'T');
    save(file2, '-ascii', '-double', 'dx0');
+
+function [period, shift] = find_true_period(P0, H0)
+   % The true period is associated with the hugest hump
+   n = length(P0);
+   Q = zeros(n-1, 1);
+   for i=1:(n-1)
+      Q(i) = abs(H0(i)) + abs(H0(i+1));
+   end
+   I = find(Q == max(Q));
+   i = I(1);
+   period = P0(i+1) - P0(i);
+   shift = P0(i) - i*period;
+   while shift > 0
+      shift = shift - period;
+   end
+
+   plot(P0(i), H0(i), 'g*');
+   disp(sprintf('--period and shift %g %g', period, shift));
+   
+   
+function [P0, H0] = sparse_ccds(wid, period, shift, n, P0, H0)
+   
+   % Keep one CCD per period
+   P = period*(1:n) + shift;
+   I = find(P <= n);
+   P = P(I);
+   I=[];
+   for i=1:length(P)
+      J = find( P0 >= P(i) - wid & P0 <= P(i) + wid);
+      if length(J) == 0
+         continue
+      end
+      K = find( abs(H0(J)) == max(abs(H0(J))) );
+      I = [I, J(K(1))];
+   end
+   P0 = P0(I);
+   H0 = H0(I);
    
 function U = find_ccds_aux2(B)
    

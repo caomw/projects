@@ -1,7 +1,11 @@
-function main(do_find, dirs)
+function main(do_find, dirs, pitches)
 
    % if do_find is 1, we actually find and save the CCDs,
    % otherwise we just examine the current averaged disparties.
+
+   if nargin == 2
+      pitches = [];
+   end
    
    ax={};
    ay={};
@@ -13,34 +17,61 @@ function main(do_find, dirs)
       ay = [ay, ay0];
    end
    
-   do_plot(do_find, ax, 1);
+   do_plot(do_find, ax, pitches, 1);
    title('x');
    
-   do_plot(do_find, ay, 2); 
+   do_plot(do_find, ay, pitches, 2); 
    title('y');
+
+function dx = scale_by_pitch(dx, pitch)
+   % compensate for the fact that ccd artifacts are spaced closer
+   % for larger pitch
+   base_pitch = 8.0000000000e-03;
+   I = (base_pitch/pitch)*(1:(10*length(dx)));
+   J=find(I > length(dx));
+   I = I(1:(J(1)-1));
+   dx = interp1(1:length(dx), dx', I, 'linear')';
    
-function do_plot(do_find, d, fig)
+function do_plot(do_find, d, pitches, fig)
    
    X = [];
    for i=1:length(d)
       dxf=d{i};
       if exist(dxf, 'file') == 2
-         disp(sprintf('Loading %s', dxf));
+         %disp(sprintf('Loading %s', dxf));
       else
          disp(sprintf('Missing file: %s', dxf));
          continue;
       end
       dx = load(dxf);
-      [m, n] = size(X);
-      if m > 0 && length(dx) < m
-         dx = [dx' zeros(1, m - length(dx))]';
+
+      if length(pitches) >= i
+         dx = scale_by_pitch(dx, pitches(i));
       end
+      
+      [m, n] = size(X);
+      % Deal with size mis-matches by either
+      % growing X or dx.
+      if m > 0
+         if length(dx) < m
+            dx = [dx' zeros(1, m - length(dx))]';
+         elseif m < length(dx)
+            m1 = length(dx);
+            Y = zeros(m1, n);
+            Y(1:m, 1:n) = X;
+            X = Y;
+            [m, n] = size(X);
+         end
+      end
+
       X = [X dx];
+      
    end
+   
    X = X';
 
    [m, n] = size(X);
-   disp(sprintf('size is %d %d', m, n));
+   %disp(sprintf('size is %d %d', m, n));
    
    for r=1:m
 
@@ -80,13 +111,11 @@ function do_plot(do_find, d, fig)
    colors=['b', 'r', 'g', 'c', 'k', 'b', 'r', 'g', 'c', 'b', 'r', 'g', 'k', 'c'];
    q=0;
    s=1.0; % cutoff
-   t=0.0; %0.6; % shift when plotting
-
-   period = 708;
-   shift  = -119;
-   P1 = period*(2*(1:n))   + shift; I = find(P1 <= n); P1 = P1(I);
-   P2 = period*(2*(1:n)+1) + shift; I = find(P2 <= n); P2 = P2(I);
-
+   t=0.0;
+   if do_find
+      t = 0.5; % shift when plotting
+   end
+   
    for r=1:m
       q=q+1;
       q = rem(q-1, length(colors)) + 1;
@@ -97,7 +126,7 @@ function do_plot(do_find, d, fig)
       Y = X(r, :)-find_moving_avg(X(r, :));
       X(r, :) = Y;
       r2 = rem(r-1, length(colors))+1;
-      plot(Y + t*(r+2), colors(r2));         
+      plot(Y + t*(r+1), colors(r2));         
    end
 
    [m, n] = size(X);

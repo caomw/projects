@@ -2,6 +2,7 @@
 use strict;        # insist that all variables be declared
 use diagnostics;   # expand the cryptic warnings
 use File::Basename;
+use File::Spec;
 use Cwd;
 
 MAIN:{
@@ -14,17 +15,20 @@ MAIN:{
     exit(0);
   }
 
+  my $execDir = File::Spec->rel2abs(dirname(__FILE__));
+  
   my @dirs = @ARGV;
   my $currDir = getcwd;
   foreach my $dir (@dirs){
 
     chdir $currDir;
     chdir $dir;
-    my $execDir = dirname(__FILE__);
     my $ans = qx($execDir/print_files.pl);
     $ans =~ s/\s*$//g;
     my @files = split(/\s+/, $ans);
     my $line = $dir;
+
+    my @tdis;
     
     foreach my $file (@files){
       $file = $file . ".xml";
@@ -42,9 +46,14 @@ MAIN:{
         $scandir = $1;
       }
       $line = "$line $file $tdi $scandir ";
-      
+      push(@tdis, $tdi);
     }
+
     $line =~ s/\s*$//g;
+    if (scalar(@tdis) != 2 || $tdis[0] != $tdis[1]){
+      next;
+    }
+    
     print "$line\n";
   }
   

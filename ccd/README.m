@@ -11,9 +11,11 @@
 %   src/asp/Core/InterestPointMatching.cc, the cropping output_bbox is turned off
 %   to not shift the CCD artifacts from their location.
 %
-%2. Plot the average disparities for a set of runs using find_ccds.m. ...
-%   Manually throw away the noisy ones. At the end, the CCD jumps in x and in y
-%   will be saved to text files.
+%2. Plot the average disparities for a set of runs with given TDI and
+%   scan direction using find_ccds.m.  Manually throw away the noisy
+%   ones. At the end, the CCD jumps in x and in y will be saved to
+%   text files. The auxiliary tools gen_scandir.m and plot_ccds.m
+%   can help with plotting.
 %
 %3. Hard-code the obtained values in wv_correct.cc.
    

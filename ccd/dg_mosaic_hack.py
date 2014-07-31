@@ -390,7 +390,10 @@ def tlc_pixel_lookup( tlctime, tlclist, time ):
 def xml_name( filename ):
     path, ext = os.path.splitext(filename)
     
-    m = re.match('^(.*?)-BROWSE', path)
+    m = re.match('^(.*?)(-BROWSE)', path)
+    if m:
+        path = m.group(1)
+    m = re.match('^(.*?)(_crop)', path)
     if m:
         path = m.group(1)
 
