@@ -1,7 +1,7 @@
 %How to deal with CCD artifacts:
 %
-%1. Find the average disparity:
-%   g=a100                      
+%1. Find the average disparity for a given run
+%   g=a100  # this a directory having input images and xml files                    
 %   qsub -N $g -l select=1:ncpus=8 -l walltime=15:00:00 -W group_list=s1219 \
 %   -j oe -m n -- $(pwd)/driver.sh $(pwd)/$g                          
 %
