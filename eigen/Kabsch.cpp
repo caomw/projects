@@ -1,7 +1,5 @@
 // This code is released in public domain
 
-#include <iostream>
-#include <vector>
 #include <Eigen/Geometry>
 
 // Given two sets of 3D points, find the rotation + translation + scale
