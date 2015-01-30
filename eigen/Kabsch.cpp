@@ -40,7 +40,6 @@ Eigen::Affine3d Find3DAffineTransform(Eigen::Matrix3Xd in, Eigen::Matrix3Xd out)
   }
   in_ctr /= in.cols();
   out_ctr /= out.cols();
-
   for (int col = 0; col < in.cols(); col++) {
     in.col(col)  -= in_ctr;
     out.col(col) -= out_ctr;
@@ -93,5 +92,4 @@ void TestFind3DAffineTransform(){
   if ( (scale*R-A.linear()).cwiseAbs().maxCoeff() > 1e-13 ||
        (S-A.translation()).cwiseAbs().maxCoeff() > 1e-13)
     throw "Could not determine the affine transform accurately enough";
-
 }
