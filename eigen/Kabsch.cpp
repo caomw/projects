@@ -87,7 +87,7 @@ void TestFind3DAffineTransform(){
   for (int col = 0; col < in.cols(); col++)
     out.col(col) = scale*R*in.col(col) + S;
 
-  Eigen::Affine3d A = sparse_mapping::Find3DAffineTransform(in, out);
+  Eigen::Affine3d A = Find3DAffineTransform(in, out);
 
   // See if we got the transform we expected
   if ( (scale*R-A.linear()).cwiseAbs().maxCoeff() > 1e-13 ||
