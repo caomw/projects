@@ -6,6 +6,7 @@
 // which best maps the first set to the second.
 // Source: http://en.wikipedia.org/wiki/Kabsch_algorithm
 
+// The input 3D points are stored as columns.
 Eigen::Affine3d Find3DAffineTransform(Eigen::Matrix3Xd in, Eigen::Matrix3Xd out) {
 
   // Default output
